@@ -1,6 +1,6 @@
 import { Response, Request } from 'express'
 import * as availableService from '../services/available.service'
-import moment = require('moment')
+import moment from 'moment'
 
 async function check(req: Request, res: Response) {
     const dateString: string = req.query.date
@@ -11,8 +11,8 @@ async function check(req: Request, res: Response) {
         return
     }
 
-    if (!moment(dateString, moment.ISO_8601, true).isValid()) {
-        res.status(400).json({ "error": "wrong format for param date" })
+    if (!moment(dateString, moment.ISO_8601, true).isValid() || !Number.parseInt(resourceId)) {
+        res.status(400).json({ "error": "wrong format for param date or resourceId" })
         return
     }
 
@@ -25,7 +25,7 @@ async function check(req: Request, res: Response) {
     check.then((jsonResponse: any) => {
         res.status(200).json(jsonResponse)
     }).catch((error: any) => {
-        res.status(400).json({ "error": `the resourceId ${resourceId} doesn't exist` })
+        res.status(200).json({ "available": false })
     })
 }
 

@@ -1,5 +1,4 @@
-import { Application } from 'express'
-import * as express from "express"
+import express, { Application } from 'express'
 import available from './routes/available.route'
 import { log } from 'console'
 
@@ -14,3 +13,5 @@ app.use(express.json())
 app.listen(port, () => {
     log(`Room Available API listening on port ${port}`)
 })
+
+export default app
