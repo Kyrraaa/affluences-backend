@@ -1,4 +1,13 @@
-export default interface TimeTable {
+interface Timetable {
+    opening: Date
+    closing: Date
+}
+
+interface TimeTablesData {
     open: boolean
-    timetables: [{}]
+    timetables: Timetable[]
+}
+
+export {
+    TimeTablesData
 }

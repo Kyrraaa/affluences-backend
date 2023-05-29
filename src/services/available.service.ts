@@ -1,43 +1,55 @@
-import axios, { AxiosResponse } from "axios"
-import TimeTable from "../interfaces/timetable"
-import { log } from "console"
-import Reservation from "../interfaces/reservation"
+import axios from "axios"
+import { ReservationsData } from "../interfaces/reservation"
+import { TimeTablesData } from "../interfaces/timetable"
 
-
-async function check(dateString: string, resourceId: number) {
-    const timetableResponse = await axios.get<TimeTable>('http://localhost:8080/timetables', {
+async function check(currentDate: Date, resourceId: number) {
+    const timetableResponse = await axios.get<TimeTablesData>('http://localhost:8080/timetables', {
         params: {
-            date: dateString,
+            date: currentDate,
             resourceId: resourceId
         }
     })
+    
     if (!timetableResponse.data.open) {
         return {
-            message: "Resource is closed"
+            available: false
         }
     }
-
-    const reservationResponse = await axios.get<Reservation>('http://localhost:8080/reservations', {
+    
+    const reservationResponse = await axios.get<ReservationsData>('http://localhost:8080/reservations', {
         params: {
-            date: dateString,
+            date: currentDate,
             resourceId: resourceId
         }
     })
 
-    for (let index = 0; index < reservationResponse.data.reservations.length; index++) {
+    let available: boolean = true
+
+    for (let index = 0; index < reservationResponse.data.reservations.length && available; index++) {
         const currentReservation = reservationResponse.data.reservations[index]
-        // Je m'étais arrêtée là à la deadline (15h20)
-        // const available: boolean = isDateBetween()
-        
+
+        // Make a valid instance of the date to make it comparable
+        const startDate: Date = new Date(currentReservation.reservationStart)
+
+        // Adjust the timezone bewteen the local computer time and the utc time
+        const adjustedStartDate: Date = new Date(startDate.getTime() - (startDate.getTimezoneOffset() * 60000))
+
+        // Make a valid instance of the date to make it comparable
+        const endDate: Date = new Date(currentReservation.reservationEnd)
+
+        // Adjust the timezone bewteen the local computer time and the utc time
+        const adjustedEndDate: Date = new Date(endDate.getTime() - (endDate.getTimezoneOffset() * 60000))
+
+        available = isAvailable(adjustedStartDate, adjustedEndDate, currentDate)
+    }
+
+    return {
+        available: available
     }
 }
 
-function isDateBetween(startDateString: string, endDateString: string, targetDateString: string) {
-    const startDate = new Date(startDateString)
-    const endDate = new Date(endDateString)
-    const targetDate = new Date(targetDateString)
-
-    return startDate <= targetDate && targetDate <= endDate
+function isAvailable(startDate: Date, endDate: Date, targetDate: Date): boolean {
+    return targetDate < startDate || targetDate > endDate
 }
 
 export {
